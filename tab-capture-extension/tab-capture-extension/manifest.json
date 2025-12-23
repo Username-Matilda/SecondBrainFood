@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "Tab Capture",
+  "version": "1.1.0",
+  "description": "Capture tabs for later processing. Close with confidence.",
+  
+  "permissions": [
+    "activeTab",
+    "tabs"
+  ],
+  
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Capture this tab",
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  },
+  
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Alt+Shift+S",
+        "mac": "Alt+Shift+S"
+      },
+      "description": "Capture current tab"
+    }
+  },
+  
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}
