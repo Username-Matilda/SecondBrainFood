@@ -10,7 +10,6 @@ Getting an LLM to summarise individual posts/book chapters etc and then manually
 ---
 
 ## The Flow
-
 ```
 Browser tab holds your attention hostage
               ↓
@@ -29,8 +28,8 @@ Knowledge transferred, distilled, organised. Debt cleared.
 
 ## What It Does
 
-1. **Captures** — Browser extension grabs URL + title + your note, closes the tab immediately
-2. **Processes** — Pipeline fetches content, sends to Claude for gears-level summarization
+1. **Captures** — Browser extension grabs URL + title + page content + your note, closes the tab immediately
+2. **Processes** — Pipeline fetches content (or uses captured content), sends to Claude for gears-level summarization
 3. **Delivers** — Markdown files appear directly in your Obsidian vault
 4. **Classifies** — Auto-tags from your personal taxonomy
 
@@ -51,11 +50,10 @@ Knowledge transferred, distilled, organised. Debt cleared.
 ## Installation
 
 ### 1. Clone and install dependencies
-
 ```bash
 git clone https://github.com/YOUR_USERNAME/second-brain-food.git
 cd second-brain-food
-pip install anthropic trafilatura
+pip install anthropic trafilatura pdfplumber
 ```
 
 ### 2. Set environment variables
@@ -77,11 +75,10 @@ export OBSIDIAN_VAULT_PATH="/path/to/your/vault/Inbox"
 1. Open `chrome://extensions/`
 2. Enable "Developer mode" (top right)
 3. Click "Load unpacked"
-4. Select the `extension/` folder from this repo
+4. Select the `tab-capture-extension/tab-capture-extension/` folder from this repo
 5. Pin to toolbar
 
 ### 4. Start the server
-
 ```bash
 python capture_server.py
 ```
@@ -111,6 +108,16 @@ Open `localhost:7777` — you should see the dashboard.
 
 ---
 
+## Utilities
+
+**convert_bookmarks.py** — Imports Chrome bookmark exports (HTML) into the capture queue. Useful for processing your existing bookmark backlog.
+
+**lw_fetcher.py** — Optimises content extraction for sites where anti-scraping measures create friction (LessWrong, etc.). Falls back gracefully when standard fetching fails.
+
+**pdf_handler.py** — Extracts text from PDF URLs (including arXiv papers). Integrated into the pipeline automatically.
+
+---
+
 ## Tag Library
 
 Create `tag_library.md` in your Obsidian vault's inbox folder. The pipeline reads it and auto-classifies content. I plan on using this in conjunction with the Mind Map Obs community plugin.
@@ -118,11 +125,6 @@ Create `tag_library.md` in your Obsidian vault's inbox folder. The pipeline read
 Format:
 ```markdown
 ## Domains
-
-examples: 
-
-philosophy/mind :: Consciousness, phenomenology
-effectiveness/agency :: Taking action, motivation
 
 ## Content Types
 
@@ -164,7 +166,6 @@ The dashboard gives you on-demand processing. But if you want captures processed
 4. Click Finish
 
 ### The Result
-
 ```
 Captures accumulate throughout the day
               ↓
@@ -185,18 +186,21 @@ Add to crontab (`crontab -e`):
 ---
 
 ## File Structure
-
 ```
 second-brain-food/
 ├── capture_server.py      # Server + dashboard
 ├── summarize_pipeline.py  # Fetch → Claude → Obsidian
+├── pdf_handler.py         # PDF text extraction
+├── convert_bookmarks.py   # Chrome bookmark importer
+├── lw_fetcher.py          # Optimised fetcher for tricky sites
 ├── start_server.bat       # Manual start (visible)
 ├── start_silent.vbs       # Auto-start (invisible)
-├── extension/
-│   ├── manifest.json
-│   ├── popup.html
-│   ├── popup.js
-│   └── icons...
+├── tab-capture-extension/
+│   └── tab-capture-extension/
+│       ├── manifest.json
+│       ├── popup.html
+│       ├── popup.js
+│       └── icons/
 └── README.md
 ```
 
@@ -222,4 +226,4 @@ Built with [Claude](https://anthropic.com) for the thinking, [Trafilatura](https
 
 ## License
 
-MIT. Use freely to empower yourself to be wiser and better informed, then go help save the world! 
+MIT. Use freely to empower yourself to be wiser and better informed, then go help save the world!

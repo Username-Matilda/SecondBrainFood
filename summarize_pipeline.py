@@ -4,7 +4,7 @@ Second Brain Food - Summarization Pipeline (v3)
 ================================================
 Clean output. Keyword filenames. No redundancy.
 """
-
+from pdf_handler import is_pdf_url, fetch_pdf_content
 import os
 import sys
 import json
@@ -27,6 +27,11 @@ except ImportError:
     print("Missing 'trafilatura'. Run: python -m pip install trafilatura")
     sys.exit(1)
 
+try:
+    from pdf_handler import is_pdf_url, fetch_pdf_content
+    PDF_SUPPORT = True
+except ImportError:
+    PDF_SUPPORT = False
 
 def get_config():
     api_key = os.environ.get("ANTHROPIC_API_KEY")
@@ -71,12 +76,29 @@ def load_tag_library(filepath: Path) -> str:
     return ""
 
 
-def fetch_content(url: str) -> dict:
+def fetch_content(url: str, captured_content: str = None) -> dict:
+    # Priority 1: Use pre-captured content if available and substantial
+    if captured_content and len(captured_content.strip()) > 200:
+        return {
+            "success": True,
+            "content": captured_content,
+            "title": None,
+            "author": None,
+            "date": None,
+        }
+    
+    # Priority 2: PDF handler for PDF URLs
+    if PDF_SUPPORT and is_pdf_url(url):
+        result = fetch_pdf_content(url)
+        if result and result.get("success"):
+            return result
+    
+    # Priority 3: Trafilatura for web pages
     try:
         downloaded = trafilatura.fetch_url(url)
         if not downloaded:
             return {"success": False, "error": "Could not download"}
-        
+
         content = trafilatura.extract(
             downloaded,
             include_comments=False,
@@ -84,10 +106,10 @@ def fetch_content(url: str) -> dict:
             no_fallback=False
         )
         metadata = trafilatura.extract_metadata(downloaded)
-        
+
         if not content or len(content.strip()) < 100:
             return {"success": False, "error": "No content extracted"}
-        
+
         return {
             "success": True,
             "content": content,
@@ -120,7 +142,7 @@ REQUIREMENTS:
 
 DO NOT include author/date/source header—that's in frontmatter.
 DO NOT repeat tags in the summary body.
-Keep it 200-400 words. Dense. No fluff.
+Keep it concise, but no more concise than required to convey the substance of the content such that the conceptual engine actually runs - longer summaries are fine for very complex/intricate content. Dense. No fluff. Evocative examples/salient facts from the content are useful.
 
 {tag_instructions}
 
@@ -330,7 +352,7 @@ def run():
         
         print(f"  [{i}/{len(pending)}] {title[:50]}...")
         
-        fetched = fetch_content(url)
+        fetched = fetch_content(url, tab.get("content"))
         if not fetched["success"]:
             print(f"    ✗ {fetched['error']}")
             mark_processed(config["processed_file"], url, f"failed: {fetched['error']}")
